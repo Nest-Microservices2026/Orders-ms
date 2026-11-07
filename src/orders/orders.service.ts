@@ -1,7 +1,9 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/prisma/client';
+
 
 
 @Injectable()
@@ -10,7 +12,8 @@ export class OrdersService extends PrismaClient
 
   private readonly logger = new Logger("OrdersService");
 
-  constructor() {
+  constructor(
+  ) {
     super({
       adapter: new PrismaPg({
         connectionString: process.env.DATABASE_URL,
@@ -27,8 +30,17 @@ export class OrdersService extends PrismaClient
     await this.$disconnect();
   }
 
-  create(createOrderDto: CreateOrderDto) {
-    return 'This action adds a new order';
+  async create(createOrderDto: CreateOrderDto) {
+    try {
+      return await this.order.create({
+        data: createOrderDto
+      });
+    } catch (error) {
+      throw new RpcException({
+        status: 400,
+        message: (error as Error).message,
+      });
+    }
   }
 
   findAll() {

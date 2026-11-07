@@ -1,6 +1,27 @@
-import { IsString } from "class-validator";
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsPositive } from "class-validator";
+
+import { OrderStatusList } from "../enum/order.enum";
+import { OrderStatus } from '../../generated/prisma/enums';
+
+
 
 export class CreateOrderDto {
-    @IsString()
-    name: string;
+
+    @IsNumber()
+    @IsPositive()
+    totalAmount: number;
+
+    @IsNumber()
+    @IsPositive()
+    totalItem: number;
+
+    @IsEnum(OrderStatusList, {
+        message: `Possible status values are ${OrderStatusList}`
+    })
+    @IsOptional()
+    status: OrderStatus = OrderStatus.PENDING
+
+    @IsBoolean()
+    @IsOptional()
+    paid: boolean = false;
 }
