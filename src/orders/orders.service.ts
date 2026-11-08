@@ -3,6 +3,7 @@ import { RpcException } from '@nestjs/microservices';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/prisma/client';
+import { OrderPaginationDto } from './dto/order-pagination.dto';
 //import { Order } from '../generated/prisma/browser';
 
 
@@ -44,9 +45,30 @@ export class OrdersService extends PrismaClient
     }
   }
 
-  async findAll() {
-    const Alls = await this.order.findMany();
-    return Alls;
+  async findAll(orderPaginationDto: OrderPaginationDto) {
+    const totalPages = await this.order.count({
+      where: {
+        status: orderPaginationDto.status
+      }
+    });
+
+    const currentPage = orderPaginationDto.page!;
+    const perPage = orderPaginationDto.limit!;
+
+    return {
+      data: await this.order.findMany({
+        skip: (currentPage - 1) * perPage,
+        take: perPage,
+        where: {
+          status: orderPaginationDto.status
+        }
+      }),
+      meta: {
+        total: totalPages,
+        page: currentPage,
+        lastPage: Math.ceil(totalPages / perPage)
+      }
+    }
   }
 
   async findOne(id: string) {
