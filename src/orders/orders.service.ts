@@ -1,8 +1,9 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/prisma/client';
+//import { Order } from '../generated/prisma/browser';
 
 
 
@@ -43,12 +44,23 @@ export class OrdersService extends PrismaClient
     }
   }
 
-  findAll() {
-    return `This action returns all orders`;
+  async findAll() {
+    const Alls = await this.order.findMany();
+    return Alls;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
+  async findOne(id: string) {
+    const order = await this.order.findUnique({ where: { id } });
+
+    if (!order) {
+      throw new RpcException({
+        status: HttpStatus.NOT_FOUND,
+        message: `Order with id ${id} not found.`
+
+      })
+    }
+
+    return order;
   }
 
 }
