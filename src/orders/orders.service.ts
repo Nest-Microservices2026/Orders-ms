@@ -4,8 +4,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../generated/prisma/client';
 import { OrderPaginationDto } from './dto/order-pagination.dto';
-//import { Order } from '../generated/prisma/browser';
-
+import { ChangeOrderStatusDto } from './dto/change-order-status.dto';
 
 
 @Injectable()
@@ -83,6 +82,19 @@ export class OrdersService extends PrismaClient
     }
 
     return order;
+  }
+
+  async changeStatus(ChangeOrderStatusDto: ChangeOrderStatusDto) {
+    const { id, status } = ChangeOrderStatusDto;
+    const order = await this.findOne(id);
+    if (order.status === status) {
+      return order;
+    }
+
+    return this.order.update({
+      where: { id: id },
+      data: { status: status }
+    })
   }
 
 }
