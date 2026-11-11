@@ -32,16 +32,21 @@ export class OrdersService extends PrismaClient
   }
 
   async create(createOrderDto: CreateOrderDto) {
-    try {
-      return await this.order.create({
-        data: createOrderDto
-      });
-    } catch (error) {
-      throw new RpcException({
-        status: 400,
-        message: (error as Error).message,
-      });
+
+    return {
+      service:'Orders Microservice',
+      createOrderDto
     }
+    // try {
+    //   return await this.order.create({
+    //     data: createOrderDto
+    //   });
+    // } catch (error) {
+    //   throw new RpcException({
+    //     status: 400,
+    //     message: (error as Error).message,
+    //   });
+    // }
   }
 
   async findAll(orderPaginationDto: OrderPaginationDto) {
