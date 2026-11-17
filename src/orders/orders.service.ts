@@ -36,11 +36,43 @@ export class OrdersService extends PrismaClient
   }
 
   async create(createOrderDto: CreateOrderDto) {
-    const ids = [2, 3];
+    try {
 
-    const products = await firstValueFrom(this.productsClient.send({ cmd: 'validate_products' }, ids));
-    return products;
-    
+      const productIds = createOrderDto.items.map((item) => item.productId);
+      const products: any[] = await firstValueFrom(this.productsClient.send({ cmd: 'validate_products' }, productIds));
+
+      const totalAmount = createOrderDto.items.reduce((acc, orderItem) => {
+        const price = products.find((product) => product.id === orderItem.productId).price;
+
+        return acc + price * orderItem.quantity;
+      }, 0);
+
+      const totalItems = createOrderDto.items.reduce((acc, orderItem) => {
+        return acc + orderItem.quantity;
+      },0);
+
+      const order = await this.order.create({
+        data:{
+          totalAmount,
+          totalItem:totalItems,
+          OrderItem:{
+            createMany: {
+              data:[
+
+              ]
+            }
+          }
+        }
+      });
+
+      return order;
+
+    } catch (error) {
+      throw new RpcException({
+        status: HttpStatus.BAD_REQUEST,
+        message: error,
+      });
+    }
   }
 
   async findAll(orderPaginationDto: OrderPaginationDto) {
