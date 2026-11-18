@@ -49,23 +49,43 @@ export class OrdersService extends PrismaClient
 
       const totalItems = createOrderDto.items.reduce((acc, orderItem) => {
         return acc + orderItem.quantity;
-      },0);
+      }, 0);
 
       const order = await this.order.create({
-        data:{
+        data: {
           totalAmount,
-          totalItem:totalItems,
-          OrderItem:{
+          totalItem: totalItems,
+          OrderItem: {
             createMany: {
-              data:[
-
-              ]
+              data: createOrderDto.items.map((orderItem) => {
+                const product = products.find((product) => product.id === orderItem.productId);
+                return {
+                  price: product.price,
+                  productId: orderItem.productId,
+                  quantity: orderItem.quantity
+                }
+              })
+            }
+          }
+        },
+        include: {
+          OrderItem: {
+            select: {
+              price: true,
+              quantity: true,
+              productId: true
             }
           }
         }
       });
 
-      return order;
+      return {
+        ...order,
+        OrderItem: order.OrderItem.map((orderItem) => ({
+          ...orderItem,
+          name: products.find((product) => product.id === orderItem.productId).name,
+        }))
+      };
 
     } catch (error) {
       throw new RpcException({
